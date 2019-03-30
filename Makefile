@@ -23,7 +23,7 @@ TEST_ROOT := test
 MOCK_TARGET := $(TEST_ROOT)/$(MODULE_NAME)/v1/$(MODULE_NAME)_mock.go
 
 
-.PHONY: clean
+.PHONY:
 
 clean:
 	rm -rf $(OUT)
@@ -37,7 +37,15 @@ protoc: clean
 		v1/$(MODULE_NAME).proto
 
 build: protoc
-	$(DOCKER) build -t $(MODULE_NAME) .
+	$(DOCKER) build -t $(IMAGE_NAME) .
+
+docker-run:
+	$(DOCKER) run -p 8080:8080 $(IMAGE_NAME)
+
+
+push-gcr:
+	docker tag $(IMAGE_NAME) gcr.io/$(PROJECT_ID)/$(IMAGE_NAME):latest
+	docker push gcr.io/$(PROJECT_ID)/$(IMAGE_NAME)
 
 #
 #mocks:

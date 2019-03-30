@@ -1,7 +1,6 @@
 FROM golang:alpine AS builder
 
-RUN apk add git
-RUN apk add protobuf
+RUN apk --update --no-cache add git protobuf
 
 WORKDIR /go/src/sentiment
 
@@ -12,7 +11,17 @@ RUN go install -v ./...
 
 RUN ls /go/bin
 
+# Next stage
 FROM alpine
-COPY --from=builder /go/bin/sentiment /usr/local/
 
-CMD ["/usr/local/sentiment"]
+RUN apk --update --no-cache add ca-certificates openssl
+#COPY GIAG2.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
+COPY --from=builder /go/bin/sentiment /usr/local/bin
+
+# Add credentials to image for now
+COPY secrets/sentiment.credentials.json /usr/local/sentiment/
+ENV GOOGLE_APPLICATION_CREDENTIALS="/usr/local/sentiment/sentiment.credentials.json"
+
+CMD ["/usr/local/bin/sentiment"]
